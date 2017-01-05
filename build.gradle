@@ -1,0 +1,25 @@
+group 'io.squark'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+task (fatJar, type: Jar) {
+  manifest {
+    attributes 'Main-Class': 'io.squark.swaggercombine.SwaggerCombine'
+  }
+  baseName = project.name + '-all'
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+  with jar
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile group: 'io.swagger', name: 'swagger-parser', version: '1.0.25'
+  compile group: 'io.swagger', name: 'swagger-core', version: '1.5.12'
+  testCompile group: 'junit', name: 'junit', version: '4.11'
+}
