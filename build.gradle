@@ -1,18 +1,49 @@
+plugins {
+  id "com.jfrog.bintray" version "1.7.3"
+}
+
 group 'io.squark'
-version '1.0-SNAPSHOT'
+version '0.1'
 
 apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'maven'
+apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = 1.8
 
+mainClassName = 'io.squark.swaggercombine.SwaggerCombine'
+
 task (fatJar, type: Jar) {
   manifest {
-    attributes 'Main-Class': 'io.squark.swaggercombine.SwaggerCombine'
+    attributes 'Main-Class': mainClassName
   }
   baseName = project.name + '-all'
   from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
   with jar
 }
+
+bintray {
+  Properties properties = new Properties()
+  properties.load( new FileInputStream("local.properties"))
+
+  user = properties.getProperty("bintray.user")
+  key = properties.getProperty("bintray.apikey")
+
+  configurations = ['archives']
+  pkg {
+    repo = 'squark.io'
+    name = 'io.squark'
+    userOrg = 'squark-io'
+    licenses = ['Apache-2.0']
+    vcsUrl = 'https://github.com/squark-io/swagger-combine.git'
+    version {
+      name = rootProject.version
+    }
+  }
+}
+
+//build.dependsOn(fatJar)
 
 repositories {
   mavenCentral()

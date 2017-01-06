@@ -9,3 +9,4 @@
 
 swagger*.json
 result.json
+/local.properties

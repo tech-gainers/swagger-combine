@@ -1,15 +1,22 @@
 package io.squark.swaggercombine;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import io.swagger.models.ExternalDocs;
+
 import io.swagger.models.Model;
-import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Response;
 import io.swagger.models.Scheme;
@@ -19,19 +26,8 @@ import io.swagger.models.Tag;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.parser.SwaggerParser;
-import io.swagger.parser.util.SwaggerDeserializer;
 import io.swagger.util.DeserializationModule;
 import io.swagger.util.Json;
-import io.swagger.util.ObjectMapperFactory;
-import org.apache.commons.io.IOUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Created by erik on 2017-01-05.
@@ -64,7 +60,7 @@ public class SwaggerCombine {
   public Swagger combine() {
 
     boolean stripBasePath = (properties != null &&
-    Boolean.parseBoolean(properties.getProperty("--stripBasePath", "false")));
+        Boolean.parseBoolean(properties.getProperty("--stripBasePath", "false")));
     for (Swagger swagger : swaggers) {
       if (swagger.getTags() != null) {
         for (Tag tag : swagger.getTags()) {
@@ -96,8 +92,9 @@ public class SwaggerCombine {
           if (stripBasePath) {
             String replacedPath = path.getKey();
             if (path.getKey().startsWith(firstSwagger.getBasePath()) || path.getKey().startsWith("/" + firstSwagger.getBasePath())) {
-              replacedPath = path.getKey().replace(firstSwagger.getBasePath(), "")
-                .replaceAll("//", "/");
+              replacedPath = path.getKey()
+                  .replace(firstSwagger.getBasePath(), "")
+                  .replaceAll("//", "/");
             }
             firstSwagger.path(replacedPath, path.getValue());
           } else {
@@ -154,7 +151,6 @@ public class SwaggerCombine {
     SwaggerCombine swaggerCombine = new SwaggerCombine(arguments, properties);
     Swagger combined = swaggerCombine.combine();
 
-
     ObjectMapper mapper = Json.mapper();
 
     Module deserializerModule = new DeserializationModule(true, true);
@@ -163,11 +159,15 @@ public class SwaggerCombine {
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    File output = new File("result.json");
+
+    String outputFile = properties.getProperty("--outputFile");
+    if (outputFile == null) {
+      outputFile = "result.json";
+    }
+    File output = new File(outputFile);
     mapper.writer(new DefaultPrettyPrinter()).writeValue(output, combined);
 
     System.out.println("Done.");
   }
-
 
 }
